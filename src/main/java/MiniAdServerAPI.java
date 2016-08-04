@@ -1,25 +1,28 @@
+import jetty.JettyHandler;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.restlet.Application;
 import org.restlet.Component;
 import org.restlet.Restlet;
 import org.restlet.data.Protocol;
 import org.restlet.routing.Router;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import persistence.AbstractPersistenceService;
+import persistence.AbstractDAO;
 import resource.*;
+
+import java.util.logging.Logger;
+
 
 
 /**
  * Created by mikhail on 29.07.16.
  */
 public class MiniAdServerAPI extends Application {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MiniAdServerAPI.class);
+    private static final Logger LOGGER = Logger.getLogger("InfoLogging");
 
     public static void main(String[] args) throws Exception {
-        LOGGER.info("Application is starting...");
+        AbstractDAO.init();
 
-        AbstractPersistenceService.init();
-
+        // -------------------Rest-API----------------------
         // Attach application to http://localhost:9090/v1
         Component c = new Component();
         c.getServers().add(Protocol.HTTP, 9090);
@@ -31,33 +34,33 @@ public class MiniAdServerAPI extends Application {
 
         c.start();
 
-//        {
-//            "id" : 1,
-//                "name" : "testCampaign1",
-//                "weight" : 10,
-//                "adPhrase" : "Best ad ever",
-//                "placements" : [{"id" : 1, "name" : "pl1"}]
-//        }
-
-//        {
-//            "id" : 1,
-//                "name" : "testPlacement1",
-//                "campaign_id" : 1
-//        }
-
-        LOGGER.info("Web API started");
+        LOGGER.info("Rest API started");
         LOGGER.info("URL: http://localhost:9090/v1");
+        // -------------------------------------------------
+
+        // ================== Jetty ========================
+        Server jettyServer = new Server();
+        ServerConnector http = new ServerConnector(jettyServer);
+        http.setHost("localhost");
+        http.setPort(8080);
+        http.setIdleTimeout(30000);
+
+        jettyServer.addConnector(http);
+        jettyServer.setHandler(new JettyHandler());
+
+        jettyServer.start();
+        LOGGER.info("Jetty started");
+        LOGGER.info("URL: http://localhost:8080");
+        jettyServer.join();
+        // =================================================
     }
 
     @Override
     public Restlet createInboundRoot() {
-
         Router publicRouter = publicResources();
 
-        // Create the api router, protected by a guard
         Router apiRouter = createApiRouter();
         publicRouter.attachDefault(apiRouter);
-
         return publicRouter;
     }
 

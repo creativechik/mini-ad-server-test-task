@@ -10,9 +10,9 @@ import representation.CampaignRepresentation;
  */
 public interface CampaignListResource {
     @Post
-    public CampaignRepresentation add(CampaignRepresentation campaignRepresentation)
+    CampaignRepresentation add(CampaignRepresentation campaignRepresentation)
             throws IllegalArgumentException;
 
     @Get
-    public CampaignListRepresentation getCampaigns();
+    CampaignListRepresentation getCampaigns();
 }

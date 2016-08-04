@@ -11,15 +11,15 @@ public class CassandraClient {
 
     private Session session;
 
-    public void connect(String node, int port) {
-        cluster = Cluster.builder().
-                addContactPoint(node)
+    void connect(String node, int port) {
+        cluster = Cluster.builder()
+                .addContactPoint(node)
                 .withPort(port)
                 .build();
         session = cluster.connect();
     }
 
-    public Session getSession() {
+    Session getSession() {
         return session;
     }
 

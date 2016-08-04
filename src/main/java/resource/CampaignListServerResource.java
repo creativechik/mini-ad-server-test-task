@@ -3,12 +3,10 @@ package resource;
 import org.restlet.data.Status;
 import org.restlet.resource.ResourceException;
 import org.restlet.resource.ServerResource;
-import persistence.CampaignPersistenceService;
+import persistence.CampaignDAO;
 import persistence.entity.Campaign;
 import representation.CampaignListRepresentation;
 import representation.CampaignRepresentation;
-import util.CampaignUtils;
-import util.ResourceUtils;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -19,25 +17,27 @@ import java.util.logging.Level;
  * Created by mikhail on 01.08.16.
  */
 public class CampaignListServerResource extends ServerResource implements CampaignListResource {
-    private CampaignPersistenceService campaignPersistenceService;
+    private CampaignDAO campaignDAO;
 
     @Override
     protected void doInit() {
-        campaignPersistenceService = CampaignPersistenceService.getInstance();
+        campaignDAO = CampaignDAO.getInstance();
     }
 
     public CampaignRepresentation add(CampaignRepresentation campaignRepresentation) throws IllegalArgumentException {
         try {
-            Campaign campaignIn = CampaignUtils.toCampaign(campaignRepresentation);
-            Campaign campaignOut = campaignPersistenceService.add(campaignIn);
+            Campaign campaignIn = campaignRepresentation.asCampaign();
+            Campaign campaignOut = campaignDAO.add(campaignIn);
             if (campaignOut == null) {
-                throw new IllegalArgumentException(String.format("Campaign '%s' can not be added", campaignRepresentation.getName()));
+                throw new IllegalArgumentException(
+                        String.format("Campaign '%s' can not be added",
+                                campaignRepresentation.getName()
+                        )
+                );
             }
 
-            CampaignRepresentation result = CampaignUtils.toCampaignRepresentation(campaignOut);
-
-            getResponse().setLocationRef(
-                    ResourceUtils.getCampaignUrl(String.valueOf(campaignOut.getId())));
+            CampaignRepresentation result = campaignOut.asCampaignRepresentation();
+            getResponse().setLocationRef("/campaigns/" + campaignOut.getId());
             getResponse().setStatus(Status.SUCCESS_CREATED);
             return result;
         } catch (SQLException ex) {
@@ -48,21 +48,19 @@ public class CampaignListServerResource extends ServerResource implements Campai
 
     public CampaignListRepresentation getCampaigns() {
         try {
-            List<Campaign> campaigns = campaignPersistenceService.findAll();
+            List<Campaign> campaigns = campaignDAO.findAll();
             if (campaigns == null) {
+                getLogger().log(Level.WARNING, "There are no campaigns in db yet");
                 return null;
             }
 
-            List<CampaignRepresentation> companyReprs = new ArrayList<CampaignRepresentation>();
+            List<CampaignRepresentation> campaignReprs = new ArrayList<CampaignRepresentation>();
             for (Campaign campaign : campaigns) {
-                CampaignRepresentation companyRepr = CampaignUtils
-                        .toCampaignRepresentation(campaign);
-                companyRepr
-                        .setSelf(ResourceUtils.getCampaignUrl(String.valueOf(campaign.getId())));
-                companyReprs.add(companyRepr);
+                CampaignRepresentation campaignRepr = campaign.asCampaignRepresentation();
+                campaignReprs.add(campaignRepr);
             }
             CampaignListRepresentation result = new CampaignListRepresentation();
-            result.setList(companyReprs);
+            result.setList(campaignReprs);
             return result;
         } catch (SQLException ex) {
             getLogger().log(Level.WARNING, "Error when listing campaigns", ex);

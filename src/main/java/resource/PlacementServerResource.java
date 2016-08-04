@@ -2,11 +2,9 @@ package resource;
 
 import org.restlet.resource.ResourceException;
 import org.restlet.resource.ServerResource;
-import persistence.PlacementPersistenceService;
+import persistence.PlacementDAO;
 import persistence.entity.Placement;
 import representation.PlacementRepresentation;
-import util.PlacementUtils;
-import util.ResourceUtils;
 
 import java.sql.SQLException;
 
@@ -14,47 +12,44 @@ import java.sql.SQLException;
  * Created by mikhail on 01.08.16.
  */
 public class PlacementServerResource extends ServerResource implements PlacementResource {
-    private PlacementPersistenceService placementPersistenceService;
-
-    private Placement placement;
-
+    private PlacementDAO placementDAO;
     private String id;
+    private String nonExistentPlacementReason;
 
     /**
-     * Method called at the creation of the Resource (ie : each time the
-     * resource is called).
+     * Method called at the creation of the Resource
      */
     @Override
     protected void doInit() {
         id = getAttribute("id");
-        placementPersistenceService = PlacementPersistenceService.getInstance();
+        nonExistentPlacementReason = String.format("Placement with id = %s does not exist", id);
+        placementDAO = PlacementDAO.getInstance();
+    }
 
+    public PlacementRepresentation getPlacement() throws IllegalArgumentException {
+        Placement placement;
         try {
-            placement = placementPersistenceService.findById(id);
+            placement = placementDAO.findById(id);
             setExisting(placement != null);
             if (!isExisting()) {
-                getLogger().config(String.format("Placement with id = %s does not exist", id));
+                getLogger().config(nonExistentPlacementReason);
                 setExisting(false);
             }
         } catch (SQLException e) {
             throw new ResourceException(e);
         }
-    }
 
-    public PlacementRepresentation getPlacement() throws IllegalArgumentException {
         if (placement == null) {
-            throw new IllegalArgumentException(String.format("Placement with id = %s does not exist", id));
+            throw new IllegalArgumentException(nonExistentPlacementReason);
         }
-        PlacementRepresentation res = PlacementUtils.toPlacementRepresentation(placement);
-        res.setSelf(ResourceUtils.getCampaignUrl(String.valueOf(placement.getId())));
-        return res;
+        return placement.asPlacementRepresentation();
     }
 
     public void remove() throws IllegalArgumentException {
         try {
-            Boolean isDeleted = placementPersistenceService.delete(String.valueOf(placement.getId()));
+            Boolean isDeleted = placementDAO.delete(String.valueOf(id));
             if (!isDeleted) {
-                throw new IllegalArgumentException(String.format("Placement with id = %s does not exist", id));
+                throw new IllegalArgumentException(nonExistentPlacementReason);
             }
         } catch (SQLException ex) {
             throw new ResourceException(ex);
@@ -65,20 +60,20 @@ public class PlacementServerResource extends ServerResource implements Placement
         if (placementRepresentation == null) {
             throw new IllegalArgumentException("Can not store null");
         }
-        Placement placementIn = PlacementUtils.toPlacement(placementRepresentation);
+        Placement placementIn = placementRepresentation.asPlacement();
         placementIn.setId(Integer.valueOf(id));
 
         Placement placementOut = null;
         if (isExisting()) {
             try {
-                placementOut = placementPersistenceService.update(placementIn, id);
+                placementOut = placementDAO.update(placementIn, id);
             } catch (SQLException e) {
-                e.printStackTrace();
+                throw new ResourceException(e);
             }
         }
         if (placementOut == null) {
-            throw new IllegalArgumentException(String.format("Placement with id = %s does not exist", id));
+            throw new IllegalArgumentException(nonExistentPlacementReason);
         }
-        return PlacementUtils.toPlacementRepresentation(placementOut);
+        return placementOut.asPlacementRepresentation();
     }
 }

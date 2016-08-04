@@ -2,7 +2,7 @@ package representation;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import persistence.entity.Placement;
+import persistence.entity.Campaign;
 
 import java.util.Set;
 
@@ -12,15 +12,30 @@ import java.util.Set;
 @JacksonXmlRootElement(localName = "campaign")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CampaignRepresentation {
+
     private String name;
 
     private int weight;
 
     private String adPhrase;
 
-    private Set<Placement> placements;
+    private Set<Integer> placementIds;
 
-    private String self;
+    public CampaignRepresentation() {
+    }
+
+    public CampaignRepresentation(String name, int weight, String adPhrase, Set<Integer> placementIds) {
+        this.name = name;
+        this.weight = weight;
+        this.adPhrase = adPhrase;
+        this.placementIds = placementIds;
+    }
+
+    public Campaign asCampaign() {
+        return new Campaign(
+                hashCode(), name, weight, adPhrase, placementIds
+        );
+    }
 
     public String getName() {
         return name;
@@ -34,12 +49,8 @@ public class CampaignRepresentation {
         return adPhrase;
     }
 
-    public Set<Placement> getPlacements() {
-        return placements;
-    }
-
-    public String getSelf() {
-        return self;
+    public Set<Integer> getPlacementIds() {
+        return placementIds;
     }
 
     public void setName(String name) {
@@ -54,11 +65,30 @@ public class CampaignRepresentation {
         this.adPhrase = adPhrase;
     }
 
-    public void setPlacements(Set<Placement> placements) {
-        this.placements = placements;
+    public void setPlacementIds(Set<Integer> placementIds) {
+        this.placementIds = placementIds;
     }
 
-    public void setSelf(String self) {
-        this.self = self;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        CampaignRepresentation that = (CampaignRepresentation) o;
+
+        if (weight != that.weight) return false;
+        if (!name.equals(that.name)) return false;
+        if (!adPhrase.equals(that.adPhrase)) return false;
+        return placementIds.equals(that.placementIds);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + weight;
+        result = 31 * result + adPhrase.hashCode();
+        result = 31 * result + placementIds.hashCode();
+        return result;
     }
 }

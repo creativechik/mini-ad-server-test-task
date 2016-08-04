@@ -1,5 +1,7 @@
 package persistence.entity;
 
+import representation.CampaignRepresentation;
+
 import java.util.Set;
 
 /**
@@ -14,7 +16,21 @@ public class Campaign {
 
     private String adPhrase;
 
-    private Set<Placement> placements;
+    private Set<Integer> placementIds;
+
+    public Campaign(int id, String name, int weight, String adPhrase, Set<Integer> placementIds) {
+        this.id = id;
+        this.name = name;
+        this.weight = weight;
+        this.adPhrase = adPhrase;
+        this.placementIds = placementIds;
+    }
+
+    public CampaignRepresentation asCampaignRepresentation() {
+        return new CampaignRepresentation(
+                name, weight, adPhrase, placementIds
+        );
+    }
 
     public int getId() {
         return id;
@@ -32,27 +48,34 @@ public class Campaign {
         return adPhrase;
     }
 
-    public Set<Placement> getPlacements() {
-        return placements;
+    public Set<Integer> getPlacementIds() {
+        return placementIds;
     }
 
     public void setId(int id) {
         this.id = id;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Campaign campaign = (Campaign) o;
+
+        if (weight != campaign.weight) return false;
+        if (!name.equals(campaign.name)) return false;
+        if (!adPhrase.equals(campaign.adPhrase)) return false;
+        return placementIds.equals(campaign.placementIds);
+
     }
 
-    public void setWeight(int weight) {
-        this.weight = weight;
-    }
-
-    public void setAdPhrase(String adPhrase) {
-        this.adPhrase = adPhrase;
-    }
-
-    public void setPlacements(Set<Placement> placements) {
-        this.placements = placements;
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + weight;
+        result = 31 * result + adPhrase.hashCode();
+        result = 31 * result + placementIds.hashCode();
+        return result;
     }
 }

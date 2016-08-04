@@ -2,63 +2,56 @@ package resource;
 
 import org.restlet.resource.ResourceException;
 import org.restlet.resource.ServerResource;
-import persistence.CampaignPersistenceService;
+import persistence.CampaignDAO;
 import persistence.entity.Campaign;
 import representation.CampaignRepresentation;
-import util.CampaignUtils;
-import util.ResourceUtils;
 
 import java.sql.SQLException;
 
 /**
  * Created by mikhail on 31.07.16.
  */
-public class CampaignServerResource extends ServerResource
-        implements CampaignResource {
+public class CampaignServerResource extends ServerResource implements CampaignResource {
 
-    private CampaignPersistenceService campaignPersistenceService;
-
-    private Campaign campaign;
-
+    private CampaignDAO campaignDAO;
     private String id;
+    private String nonExistentCampaignReason;
 
     /**
-     * Method called at the creation of the Resource (ie : each time the
-     * resource is called).
+     * Method called at the creation of the Resource
      */
     @Override
     protected void doInit() {
         id = getAttribute("id");
+        nonExistentCampaignReason = String.format("Campaign with id = %s does not exist", id);
+        campaignDAO = CampaignDAO.getInstance();
+    }
 
-        campaignPersistenceService = CampaignPersistenceService.getInstance();
-
+    public CampaignRepresentation getCampaign() throws IllegalArgumentException {
+        Campaign campaign;
         try {
-            campaign = campaignPersistenceService.findById(id);
+            campaign = campaignDAO.findById(id);
 
             setExisting(campaign != null);
             if (!isExisting()) {
-                getLogger().config(String.format("Campaign with id = %s does not exist", id));
+                getLogger().config(nonExistentCampaignReason);
                 setExisting(false);
             }
         } catch (SQLException e) {
             throw new ResourceException(e);
         }
-    }
 
-    public CampaignRepresentation getCampaign() throws IllegalArgumentException {
         if (campaign == null) {
-            throw new IllegalArgumentException(String.format("Campaign with id = %s does not exist", id));
+            throw new IllegalArgumentException(nonExistentCampaignReason);
         }
-        CampaignRepresentation res = CampaignUtils.toCampaignRepresentation(campaign);
-        res.setSelf(ResourceUtils.getCampaignUrl(String.valueOf(campaign.getId())));
-        return res;
+        return campaign.asCampaignRepresentation();
     }
 
     public void remove() throws IllegalArgumentException {
         try {
-            Boolean isDeleted = campaignPersistenceService.delete(String.valueOf(campaign.getId()));
+            Boolean isDeleted = campaignDAO.delete(id);
             if (!isDeleted) {
-                throw new IllegalArgumentException(String.format("Campaign with id = %s does not exist", id));
+                throw new IllegalArgumentException(nonExistentCampaignReason);
             }
         } catch (SQLException ex) {
             throw new ResourceException(ex);
@@ -69,20 +62,20 @@ public class CampaignServerResource extends ServerResource
         if (campaignRepresentation == null) {
             throw new IllegalArgumentException("Can not store null");
         }
-        Campaign campaignIn = CampaignUtils.toCampaign(campaignRepresentation);
+        Campaign campaignIn = campaignRepresentation.asCampaign();
         campaignIn.setId(Integer.valueOf(id));
 
         Campaign campaignOut = null;
         if (isExisting()) {
             try {
-                campaignOut = campaignPersistenceService.update(campaignIn, id);
+                campaignOut = campaignDAO.update(campaignIn, id);
             } catch (SQLException e) {
-                e.printStackTrace();
+                throw new ResourceException(e);
             }
         }
         if (campaignOut == null) {
-            throw new IllegalArgumentException(String.format("Campaign with id = %s does not exist", id));
+            throw new IllegalArgumentException(nonExistentCampaignReason);
         }
-        return CampaignUtils.toCampaignRepresentation(campaignOut);
+        return campaignOut.asCampaignRepresentation();
     }
 }

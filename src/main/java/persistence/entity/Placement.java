@@ -1,5 +1,7 @@
 package persistence.entity;
 
+import representation.PlacementRepresentation;
+
 /**
  * Created by mikhail on 29.07.16.
  */
@@ -8,7 +10,14 @@ public class Placement {
 
     private String name;
 
-    private int campaignId;
+    public Placement(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public PlacementRepresentation asPlacementRepresentation() {
+        return new PlacementRepresentation(id, name);
+    }
 
     public int getId() {
         return id;
@@ -16,10 +25,6 @@ public class Placement {
 
     public String getName() {
         return name;
-    }
-
-    public int getCampaignId() {
-        return campaignId;
     }
 
     public void setId(int id) {
@@ -30,7 +35,4 @@ public class Placement {
         this.name = name;
     }
 
-    public void setCampaignId(int campaignId) {
-        this.campaignId = campaignId;
-    }
 }
