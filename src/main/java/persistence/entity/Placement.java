@@ -1,6 +1,7 @@
 package persistence.entity;
 
 import representation.PlacementRepresentation;
+import java.util.Set;
 
 /**
  * Created by mikhail on 29.07.16.
@@ -34,5 +35,4 @@ public class Placement {
     public void setName(String name) {
         this.name = name;
     }
-
 }

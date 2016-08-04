@@ -1,5 +1,7 @@
 package persistence.entity;
 
+import java.util.Set;
+
 import representation.CampaignRepresentation;
 
 import java.util.Set;
@@ -54,6 +56,22 @@ public class Campaign {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
+
+    public void setAdPhrase(String adPhrase) {
+        this.adPhrase = adPhrase;
+    }
+
+    public void setPlacementIds(Set<Integer> placementIds) {
+        this.placementIds = placementIds;
     }
 
     @Override

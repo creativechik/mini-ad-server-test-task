@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import persistence.entity.Placement;
 
+import java.util.Set;
+
 /**
  * Created by mikhail on 01.08.16.
  */

@@ -2,6 +2,7 @@ package resource;
 
 import org.restlet.resource.Get;
 import org.restlet.resource.Put;
+import org.restlet.resource.Post;
 import representation.PlacementListRepresentation;
 import representation.PlacementRepresentation;
 

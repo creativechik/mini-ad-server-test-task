@@ -14,6 +14,7 @@ import java.sql.SQLException;
 public class CampaignServerResource extends ServerResource implements CampaignResource {
 
     private CampaignDAO campaignDAO;
+    private Campaign campaign;
     private String id;
     private String nonExistentCampaignReason;
 
@@ -31,7 +32,6 @@ public class CampaignServerResource extends ServerResource implements CampaignRe
         Campaign campaign;
         try {
             campaign = campaignDAO.findById(id);
-
             setExisting(campaign != null);
             if (!isExisting()) {
                 getLogger().config(nonExistentCampaignReason);

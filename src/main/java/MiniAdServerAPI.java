@@ -11,8 +11,6 @@ import resource.*;
 
 import java.util.logging.Logger;
 
-
-
 /**
  * Created by mikhail on 29.07.16.
  */

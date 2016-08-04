@@ -31,7 +31,6 @@ public class PlacementListServerResource extends ServerResource implements Place
             if (placementOut == null) {
                 throw new IllegalArgumentException(String.format("Placement '%s' can not be added", placementRepresentation.getName()));
             }
-
             getResponse().setLocationRef("/placements/" + placementOut.getId());
             getResponse().setStatus(Status.SUCCESS_CREATED);
             return placementOut.asPlacementRepresentation();

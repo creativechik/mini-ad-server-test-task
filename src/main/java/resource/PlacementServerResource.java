@@ -13,6 +13,7 @@ import java.sql.SQLException;
  */
 public class PlacementServerResource extends ServerResource implements PlacementResource {
     private PlacementDAO placementDAO;
+    private Placement placement;
     private String id;
     private String nonExistentPlacementReason;
 
@@ -38,7 +39,6 @@ public class PlacementServerResource extends ServerResource implements Placement
         } catch (SQLException e) {
             throw new ResourceException(e);
         }
-
         if (placement == null) {
             throw new IllegalArgumentException(nonExistentPlacementReason);
         }
